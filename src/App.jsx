@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { PRE_CACHED, getCacheKey } from "./mockData";
+import { Analytics } from "@vercel/analytics/react";
 
 const THEMES = {
   dark: { bg:"linear-gradient(160deg,#080e1a 0%,#0d1625 60%,#080e1a 100%)",surface:"rgba(255,255,255,0.04)",surfaceBorder:"rgba(255,255,255,0.08)",text:"#f1f5f9",subtext:"#64748b",muted:"#334155",input:"rgba(255,255,255,0.05)",inputBorder:"rgba(255,255,255,0.1)",tabBg:"rgba(255,255,255,0.04)",chip:"rgba(255,255,255,0.04)" },
@@ -406,6 +407,7 @@ Respond ONLY valid JSON (no markdown, no backticks):
 
         <p style={{ fontSize:9,color:th.muted,textAlign:"center",marginTop:22,lineHeight:1.7 }}>{t.disclaimer}</p>
       </div>
+      <Analytics />
     </div>
   );
 }
