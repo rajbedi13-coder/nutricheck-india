@@ -7,21 +7,21 @@ export default async function handler(req, res) {
   const { prompt } = req.body;
   if (!prompt) return res.status(400).json({ error: "No prompt" });
   try {
-    const response = await fetch("https://api.anthropic.com/v1/messages", {
+    const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "x-api-key": process.env.CLAUDE_KEY,
-        "anthropic-version": "2023-06-01"
+        "Authorization": `Bearer ${process.env.GROQ_KEY}`
       },
       body: JSON.stringify({
-        model: "claude-3-5-haiku-20241022",
+        model: "llama3-8b-8192",
+        messages: [{ role: "user", content: prompt }],
         max_tokens: 1024,
-        messages: [{ role: "user", content: prompt }]
+        temperature: 0.3
       })
     });
     const data = await response.json();
-    const text = data.content?.[0]?.text || "";
+    const text = data.choices?.[0]?.message?.content || "";
     if (!text) return res.status(200).json({ error: "Empty response" });
     res.status(200).json({ text });
   } catch (err) {
