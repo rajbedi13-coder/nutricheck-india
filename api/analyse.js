@@ -6,30 +6,25 @@ export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
   const { prompt } = req.body;
   if (!prompt) return res.status(400).json({ error: "No prompt" });
-
-  const keyExists = !!process.env.GROQ_KEY;
-  const keyPreview = process.env.GROQ_KEY ? process.env.GROQ_KEY.substring(0,8) : "NOT_FOUND";
-
   try {
     const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${process.env.GROQ_KEY}`
+        "Authorization": "Bearer " + process.env.GROQ_KEY
       },
       body: JSON.stringify({
-        model: "llama3-8b-8192",
+        model: "llama-3.1-8b-instant",
         messages: [{ role: "user", content: prompt }],
         max_tokens: 1024,
         temperature: 0.3
       })
     });
     const data = await response.json();
-    if (data.error) return res.status(200).json({ groqError: data.error, keyExists, keyPreview });
+    if (data.error) return res.status(200).json({ error: data.error.message });
     const text = data.choices?.[0]?.message?.content || "";
-    if (!text) return res.status(200).json({ error: "Empty response", keyExists, keyPreview });
-    res.status(200).json({ text });
+    res.status(200).json({ text: text || "empty" });
   } catch (err) {
-    res.status(500).json({ error: err.message, keyExists, keyPreview });
+    res.status(500).json({ error: err.message });
   }
 }
