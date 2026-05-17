@@ -6,6 +6,10 @@ export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
   const { prompt } = req.body;
   if (!prompt) return res.status(400).json({ error: "No prompt" });
+
+  const keyExists = !!process.env.GROQ_KEY;
+  const keyPreview = process.env.GROQ_KEY ? process.env.GROQ_KEY.substring(0,8) : "NOT_FOUND";
+
   try {
     const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
@@ -21,10 +25,11 @@ export default async function handler(req, res) {
       })
     });
     const data = await response.json();
+    if (data.error) return res.status(200).json({ groqError: data.error, keyExists, keyPreview });
     const text = data.choices?.[0]?.message?.content || "";
-    if (!text) return res.status(200).json({ error: "Empty response" });
+    if (!text) return res.status(200).json({ error: "Empty response", keyExists, keyPreview });
     res.status(200).json({ text });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: err.message, keyExists, keyPreview });
   }
 }
