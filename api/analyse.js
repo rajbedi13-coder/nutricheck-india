@@ -7,18 +7,22 @@ export default async function handler(req, res) {
   const { prompt } = req.body;
   if (!prompt) return res.status(400).json({ error: "No prompt" });
   try {
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${process.env.GEMINI_KEY}`;
-    const geminiRes = await fetch(url, {
+    const response = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": process.env.CLAUDE_KEY,
+        "anthropic-version": "2023-06-01"
+      },
       body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: { temperature: 0.3, maxOutputTokens: 1000 }
+        model: "claude-3-5-haiku-20241022",
+        max_tokens: 1024,
+        messages: [{ role: "user", content: prompt }]
       })
     });
-    const data = await geminiRes.json();
-    if (data.error) return res.status(200).json({ error: data.error.message });
-    const text = data.candidates?.[0]?.content?.parts?.[0]?.text || "";
+    const data = await response.json();
+    const text = data.content?.[0]?.text || "";
+    if (!text) return res.status(200).json({ error: "Empty response" });
     res.status(200).json({ text });
   } catch (err) {
     res.status(500).json({ error: err.message });
